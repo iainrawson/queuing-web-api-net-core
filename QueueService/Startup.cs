@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Rewrite;
 
 namespace QueueService;
 
+// TODO: Can we get rid of Startup and use the more modern way of configuring a .NET CORE Web API, 
+// or is this approach necessary as we're hosting two services within one app?
 public class Startup
 {
     public Startup(IConfiguration configuration)
