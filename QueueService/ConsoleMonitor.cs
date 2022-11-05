@@ -2,15 +2,15 @@ using QueueService.TaskQueue;
 
 namespace QueueService;
 
-public class MonitorLoop
+public class ConsoleMonitor
 {
     private readonly IBackgroundTaskQueue _taskQueue;
-    private readonly ILogger<MonitorLoop> _logger;
+    private readonly ILogger<ConsoleMonitor> _logger;
     private readonly CancellationToken _cancellationToken;
 
-    public MonitorLoop(
+    public ConsoleMonitor(
         IBackgroundTaskQueue taskQueue,
-        ILogger<MonitorLoop> logger,
+        ILogger<ConsoleMonitor> logger,
         IHostApplicationLifetime applicationLifetime)
     {
         _taskQueue = taskQueue;

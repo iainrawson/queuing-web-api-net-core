@@ -20,7 +20,7 @@ public class QueueController : ControllerBase
     [HttpPost(Name = "PostQueue")]
     public async Task<ActionResult> Post(QueueItem item)
     {
-        _logger.LogInformation("Received Post {name}", item.Name);
+        _logger.LogInformation("Received Post {name}", item.Id);
 
         var workItem = async (CancellationToken token) => {
             // Simulate three 5-second tasks to complete
@@ -28,9 +28,9 @@ public class QueueController : ControllerBase
 
             int delayLoop = 0;
 
-            string name = item.Name.ToString();
+            string id = item.Id.ToString();
 
-            _logger.LogInformation("Queued work item {name} is starting.", name);
+            _logger.LogInformation("Queued work item {id} is starting.", id);
 
             while (!token.IsCancellationRequested && delayLoop < 3)
             {
@@ -45,7 +45,7 @@ public class QueueController : ControllerBase
 
                 ++ delayLoop;
 
-                _logger.LogInformation("Queued work item {name} is running. {DelayLoop}/3", name, delayLoop);
+                _logger.LogInformation("Queued work item {id} is running. {DelayLoop}/3", id, delayLoop);
             }
 
             string status = delayLoop switch
@@ -54,7 +54,7 @@ public class QueueController : ControllerBase
                 _ => "was cancelled."
             };
 
-            _logger.LogInformation("Queued Background Task {name} {status}.", name, status);
+            _logger.LogInformation("Queued Background Task {name} {status}.", id, status);
         };
 
         await _taskQueue.QueueBackgroundWorkItemAsync(workItem);

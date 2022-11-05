@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/worker/Projects.csproj",
+                "${workspaceFolder}/QueueService/QueueService.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -19,7 +19,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/worker/Projects.csproj",
+                "${workspaceFolder}/QueueService/QueueService.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -33,7 +33,7 @@
                 "watch",
                 "run",
                 "--project",
-                "${workspaceFolder}/worker/Projects.csproj"
+                "${workspaceFolder}/QueueService/QueueService.csproj"
             ],
             "problemMatcher": "$msCompile"
         }

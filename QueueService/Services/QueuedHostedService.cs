@@ -9,16 +9,11 @@ public sealed class QueuedHostedService : BackgroundService
 
     public QueuedHostedService(
         IBackgroundTaskQueue taskQueue,
-        ILogger<QueuedHostedService> logger) =>
-        (_taskQueue, _logger) = (taskQueue, logger);
+        ILogger<QueuedHostedService> logger) => (_taskQueue, _logger) = (taskQueue, logger);
 
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation(
-            $"{nameof(QueuedHostedService)} is running.{Environment.NewLine}" +
-            $"{Environment.NewLine}Tap W to add a work item to the " +
-            $"background queue.{Environment.NewLine}");
-
+        _logger.LogInformation("{serviceName} is running.", nameof(QueuedHostedService));
         return ProcessTaskQueueAsync(stoppingToken);
     }
 
@@ -44,9 +39,7 @@ public sealed class QueuedHostedService : BackgroundService
 
     public override async Task StopAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation(
-            $"{nameof(QueuedHostedService)} is stopping.");
-
+        _logger.LogInformation("{serviceName} is stopping.", nameof(QueuedHostedService));
         await base.StopAsync(stoppingToken);
     }
 }

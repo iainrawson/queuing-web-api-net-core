@@ -1,7 +1,7 @@
 namespace QueueService.Models;
 public class QueueItem {
-    public QueueItem(Guid name) {
-        Name = name;
+    public QueueItem(Guid id) {
+        Id = id;
     }
-    public Guid Name { get; set; }
+    public Guid Id { get; set; }
 }

@@ -9,13 +9,10 @@ public partial class Program
     public static async Task Main(string[] args)
     {
         using IHost host = Host.CreateDefaultBuilder(args)
-            .ConfigureWebHostDefaults(webBuilder =>
-            {
-                webBuilder.UseStartup<Startup>();
-            })
+            .ConfigureWebHostDefaults(webBuilder => webBuilder.UseStartup<Startup>())
             .ConfigureServices((context, services) =>
             {
-                services.AddSingleton<MonitorLoop>();
+                services.AddSingleton<ConsoleMonitor>();
                 services.AddHostedService<QueuedHostedService>();
                 services.AddSingleton<IBackgroundTaskQueue>(services => 
                 {
@@ -29,7 +26,7 @@ public partial class Program
             })
             .Build();
 
-        MonitorLoop monitorLoop = host.Services.GetRequiredService<MonitorLoop>()!;
+        ConsoleMonitor monitorLoop = host.Services.GetRequiredService<ConsoleMonitor>()!;
         monitorLoop.StartMonitorLoop();
 
         await host.RunAsync();
