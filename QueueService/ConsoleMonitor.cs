@@ -1,21 +1,20 @@
-namespace App.QueueService;
+using QueueService.TaskQueue;
+
+namespace QueueService;
 
 public class MonitorLoop
 {
     private readonly IBackgroundTaskQueue _taskQueue;
     private readonly ILogger<MonitorLoop> _logger;
-    private readonly WorkItemBuilder _workItemBuilder;
     private readonly CancellationToken _cancellationToken;
 
     public MonitorLoop(
         IBackgroundTaskQueue taskQueue,
         ILogger<MonitorLoop> logger,
-        WorkItemBuilder workItemBuilder,
         IHostApplicationLifetime applicationLifetime)
     {
         _taskQueue = taskQueue;
         _logger = logger;
-        _workItemBuilder = workItemBuilder;
         _cancellationToken = applicationLifetime.ApplicationStopping;
     }
 
@@ -27,14 +26,14 @@ public class MonitorLoop
         Task.Run(async () => await MonitorAsync());
     }
 
-    private async ValueTask MonitorAsync()
+    private async Task MonitorAsync()
     {
         while (!_cancellationToken.IsCancellationRequested)
         {
             var line = Console.ReadLine();
             if (line != null && line.Length > 0) {
 
-                Func<CancellationToken, ValueTask> workItem = async (CancellationToken token) => {
+                Func<CancellationToken, Task> workItem = async (CancellationToken token) => {
                     string name = line;
 
                     int delayLoop = 0;

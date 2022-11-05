@@ -1,3 +1,4 @@
+namespace QueueService.Models;
 public class QueueItem {
     public QueueItem(Guid name) {
         Name = name;

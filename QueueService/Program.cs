@@ -1,33 +1,37 @@
-using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Hosting;
+using QueueService.Services;
+using QueueService.TaskQueue;
 
-using App.QueueService;
+namespace QueueService;
 
-using IHost host = Host.CreateDefaultBuilder(args)
-    .ConfigureWebHostDefaults(webBuilder =>
+public partial class Program
+{
+    public static async Task Main(string[] args)
     {
-        webBuilder.UseStartup<Startup>();
-    })
-    .ConfigureServices((context, services) =>
-    {
-        services.AddSingleton<MonitorLoop>();
-        services.AddSingleton<WorkItemBuilder>();
-        services.AddHostedService<QueuedHostedService>();
-        services.AddSingleton<IBackgroundTaskQueue>(services => 
-        {
-            if (!int.TryParse(context.Configuration["QueueCapacity"], out var queueCapacity))
+        using IHost host = Host.CreateDefaultBuilder(args)
+            .ConfigureWebHostDefaults(webBuilder =>
             {
-                queueCapacity = 10;
-            }
+                webBuilder.UseStartup<Startup>();
+            })
+            .ConfigureServices((context, services) =>
+            {
+                services.AddSingleton<MonitorLoop>();
+                services.AddHostedService<QueuedHostedService>();
+                services.AddSingleton<IBackgroundTaskQueue>(services => 
+                {
+                    if (!int.TryParse(context.Configuration["QueueCapacity"], out var queueCapacity))
+                    {
+                        queueCapacity = 10;
+                    }
 
-            return new DefaultBackgroundTaskQueue(services.GetRequiredService<ILogger<DefaultBackgroundTaskQueue>>(), queueCapacity);
-        });
-    })
-    .Build();
+                    return new DefaultBackgroundTaskQueue(services.GetRequiredService<ILogger<DefaultBackgroundTaskQueue>>(), queueCapacity);
+                });
+            })
+            .Build();
 
+        MonitorLoop monitorLoop = host.Services.GetRequiredService<MonitorLoop>()!;
+        monitorLoop.StartMonitorLoop();
 
-MonitorLoop monitorLoop = host.Services.GetRequiredService<MonitorLoop>()!;
-monitorLoop.StartMonitorLoop();
-
-await host.RunAsync();
-
+        await host.RunAsync();
+    }
+}

@@ -1,10 +1,10 @@
 using System.Threading.Channels;
 
-namespace App.QueueService;
+namespace QueueService.TaskQueue;
 
 public class DefaultBackgroundTaskQueue : IBackgroundTaskQueue
 {
-    private readonly Channel<Func<CancellationToken, ValueTask>> _queue;
+    private readonly Channel<Func<CancellationToken, Task>> _queue;
     private readonly ILogger<DefaultBackgroundTaskQueue> _logger;
 
     public DefaultBackgroundTaskQueue(ILogger<DefaultBackgroundTaskQueue> logger, int capacity)
@@ -14,10 +14,10 @@ public class DefaultBackgroundTaskQueue : IBackgroundTaskQueue
         {
             FullMode = BoundedChannelFullMode.Wait
         };
-        _queue = Channel.CreateBounded<Func<CancellationToken, ValueTask>>(options);
+        _queue = Channel.CreateBounded<Func<CancellationToken, Task>>(options);
     }
 
-    public async ValueTask QueueBackgroundWorkItemAsync(Func<CancellationToken, ValueTask> workItem)
+    public async Task QueueBackgroundWorkItemAsync(Func<CancellationToken, Task> workItem)
     {
         if (workItem is null)
         {
@@ -27,9 +27,9 @@ public class DefaultBackgroundTaskQueue : IBackgroundTaskQueue
         await _queue.Writer.WriteAsync(workItem);
     }
 
-    public async ValueTask<Func<CancellationToken, ValueTask>> DequeueAsync(CancellationToken cancellationToken)
+    public async Task<Func<CancellationToken, Task>> DequeueAsync(CancellationToken cancellationToken)
     {
-        Func<CancellationToken, ValueTask>? workItem = await _queue.Reader.ReadAsync(cancellationToken);
+        Func<CancellationToken, Task>? workItem = await _queue.Reader.ReadAsync(cancellationToken);
         return workItem;
     }
 }

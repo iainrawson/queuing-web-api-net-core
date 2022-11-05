@@ -1,4 +1,6 @@
-namespace App.QueueService;
+using QueueService.TaskQueue;
+
+namespace QueueService.Services;
 
 public sealed class QueuedHostedService : BackgroundService
 {
@@ -26,7 +28,7 @@ public sealed class QueuedHostedService : BackgroundService
         {
             try
             {
-                Func<CancellationToken, ValueTask>? workItem = await _taskQueue.DequeueAsync(stoppingToken);
+                Func<CancellationToken, Task>? workItem = await _taskQueue.DequeueAsync(stoppingToken);
                 await workItem(stoppingToken);
             }
             catch (OperationCanceledException)
