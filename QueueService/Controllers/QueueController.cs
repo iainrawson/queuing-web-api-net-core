@@ -22,6 +22,12 @@ public class QueueController : ControllerBase
     {
         _logger.LogInformation("Received Post {name}", item.Id);
 
+        await _taskQueue.QueueBackgroundWorkItemAsync(CreateWorkItem(item));
+        return Ok();
+    }
+
+    private Func<CancellationToken, Task> CreateWorkItem(QueueItem item) {
+
         var workItem = async (CancellationToken token) => {
             // Simulate three 5-second tasks to complete
             // for each enqueued work item
@@ -57,8 +63,8 @@ public class QueueController : ControllerBase
             _logger.LogInformation("Queued Background Task {name} {status}.", id, status);
         };
 
-        await _taskQueue.QueueBackgroundWorkItemAsync(workItem);
-        return Ok();
+        return workItem;
+
     }
 
 }
