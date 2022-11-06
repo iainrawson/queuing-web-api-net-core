@@ -18,11 +18,17 @@ public class AdmiraltyTidalApiClientStub
     }
     public async Task<TidalEvents> GetTidalEventsByStationId(int stationId) {
 
-        TidalEvents? result = JsonSerializer.Deserialize<TidalEvents>(_dummyResult, GetJsonSerializerOptions());
+        TidalEvents? result = JsonSerializer.Deserialize<TidalEvents>(_tidalEventsResult, GetJsonSerializerOptions());
         return result;
     }
 
-    private readonly string _dummyResult = @"
+    public async Task<Station> GetStationById(int stationId) {
+
+        Station? result = JsonSerializer.Deserialize<Station>(_stationResult, GetJsonSerializerOptions());
+        return result;
+    }
+
+    private readonly string _tidalEventsResult = @"
     [
         {
             ""EventType"": ""LowWater"",
@@ -43,6 +49,22 @@ public class AdmiraltyTidalApiClientStub
             ""Date"": ""2022-01-01T00:00:00""
         }
     ]";
+
+    private readonly string _stationResult = @"
+    {
+        ""type"": ""Feature"",
+        ""geometry"": {
+            ""type"": ""Point"",
+            ""coordinates"": [1.4, 51.983333]
+        },
+        ""properties"": {
+            ""Id"": ""0134"",
+            ""Name"": ""Woodbridge Haven"",
+            ""Country"": ""England"",
+            ""ContinuousHeightsAvailable"": true,
+            ""Footnote"": null
+        }
+    }";
 
 }
 

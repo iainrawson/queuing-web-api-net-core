@@ -19,12 +19,30 @@ public class PrintController : ControllerBase
         IBackgroundTaskQueue taskQueue, 
         AdmiraltyTidalApiClient admiraltyTidalApiClient) => (_logger, _taskQueue, _admiraltyTidalApiClient) = (logger, taskQueue, admiraltyTidalApiClient);
 
-    [HttpPost("Tides", Name = "PrintTidalEvents")]
-    public async Task<ActionResult> PrintTides()
+    public enum StationLocation {
+        WoodbridgeHaven,
+        Bawdsey
+    }
+
+    private readonly Dictionary<StationLocation, String> _stationLocationDictionary = new Dictionary<StationLocation, String> 
     {
-        const string stationId = "0134";
+        {StationLocation.WoodbridgeHaven, "0134"}, {StationLocation.Bawdsey, "0135"}
+    };
+
+
+    [HttpPost("Tides", Name = "PrintTidalEvents")]
+    public async Task<ActionResult> PrintTides(StationLocation stationLocation)
+    {
+        //const string stationId = "0134";
+        var stationId = _stationLocationDictionary[stationLocation];
+
+        var station = await _admiraltyTidalApiClient.GetStationById(stationId);
         var tidalEvents = await _admiraltyTidalApiClient.GetTidalEventsByStationId(stationId: stationId);
-        var queueItem = tidalEvents.ToQueueItem();
+        var stationWithTidalEvents = new StationWithTidalEvents {
+            Station = station,
+            TidalEvents = tidalEvents
+        };
+        var queueItem = stationWithTidalEvents.ToQueueItem();
         var workItem = CreateWorkItem(queueItem);
         await _taskQueue.QueueBackgroundWorkItemAsync(workItem);
         return Ok(queueItem.Id);
@@ -49,6 +67,9 @@ public class PrintController : ControllerBase
             string id = queueItem.Id.ToString();
 
             _logger.LogInformation("Queued work item {id} is starting.", id);
+
+            string rawText = System.Text.Encoding.UTF8.GetString(queueItem.RawContent);
+            _logger.LogInformation( rawText);
 
             while (!token.IsCancellationRequested && delayLoop < 3)
             {
