@@ -1,8 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
 using QueueService.TaskQueue;
 using QueueService.Models;
+using DataSources.TidalData;
+using ESCPOS_NET.Emitters;
+using ESCPOS_NET.Utilities;
+using QueueService.FormattingExtensions;
 
 namespace QueueService.Controllers;
+
+using TidalEvents = List<TidalEvent>;
 
 [ApiController]
 [Route("[controller]")]
@@ -10,11 +16,32 @@ public class QueueController : ControllerBase
 {
     private readonly ILogger<QueueController> _logger;
     private readonly IBackgroundTaskQueue _taskQueue;
+    private readonly AdmiraltyTidalApiClient _admiraltyTidalApiClient;
 
-    public QueueController(ILogger<QueueController> logger, IBackgroundTaskQueue taskQueue)
+    public QueueController(ILogger<QueueController> logger, IBackgroundTaskQueue taskQueue, AdmiraltyTidalApiClient admiraltyTidalApiClient)
     {
         _logger = logger;
         _taskQueue = taskQueue;
+        _admiraltyTidalApiClient = admiraltyTidalApiClient;
+    }
+
+    private readonly string _stationId = "0134";
+
+    [HttpGet(Name = "GetQueue")]
+    public async Task<TidalEvents> Get() {
+
+        var result = await _admiraltyTidalApiClient.GetTidalEventsByStationId(stationId: _stationId);
+        return result;
+    }
+    
+    [Route(template: "PrintTidalEvents")]
+    [HttpPost(Name = "PrintTidalEvents")]
+    public async Task<ActionResult> PrintTidalEvents()
+    {
+        var tidalEvents = await _admiraltyTidalApiClient.GetTidalEventsByStationId(stationId: _stationId);
+        var queueItem = tidalEvents.ToQueueItem();
+        await _taskQueue.QueueBackgroundWorkItemAsync(CreateWorkItem(queueItem));
+        return Ok();
     }
 
     [HttpPost(Name = "PostQueue")]
@@ -26,7 +53,7 @@ public class QueueController : ControllerBase
         return Ok();
     }
 
-    private Func<CancellationToken, Task> CreateWorkItem(QueueItem item) {
+    private Func<CancellationToken, Task> CreateWorkItem(QueueItem queueItem) {
 
         var workItem = async (CancellationToken token) => {
             // Simulate three 5-second tasks to complete
@@ -34,7 +61,7 @@ public class QueueController : ControllerBase
 
             int delayLoop = 0;
 
-            string id = item.Id.ToString();
+            string id = queueItem.Id.ToString();
 
             _logger.LogInformation("Queued work item {id} is starting.", id);
 

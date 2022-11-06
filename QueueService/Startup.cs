@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Rewrite;
+using DataSources.TidalData;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace QueueService;
 
@@ -18,8 +21,27 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
-        services.AddControllers();
+        services.AddControllers().AddJsonOptions(options =>
+        {
+            options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            //options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        });
         services.AddSwaggerGen();
+        services.AddHttpClient<AdmiraltyTidalApiClient>(client => {
+
+            var admiraltyTidalApiBaseUrl = (Configuration["AdmiraltyTidalApi:BaseUrl"] ?? "").Trim();
+            if (string.IsNullOrWhiteSpace(admiraltyTidalApiBaseUrl)) {
+                throw new ArgumentException(nameof(admiraltyTidalApiBaseUrl));
+            }
+            client.BaseAddress = new Uri(admiraltyTidalApiBaseUrl);
+
+            var admiraltyTidalApiApiKey = (Configuration["AdmiraltyTidalApi:ApiKey"] ?? "").Trim();
+            if (string.IsNullOrWhiteSpace(admiraltyTidalApiApiKey)) {
+                throw new ArgumentException(nameof(admiraltyTidalApiApiKey));
+            }
+            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", admiraltyTidalApiApiKey);
+            
+        });
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
