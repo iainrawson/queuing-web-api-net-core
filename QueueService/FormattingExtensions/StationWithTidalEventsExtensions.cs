@@ -28,7 +28,7 @@ public static class StationWithTidalEventsExtensions {
             b.Append(e.PrintLine($"{dateEvent.Key.ToStringWithOrdinal()}"));
             b.Append(e.PrintLine("----------------------------------------------------------------"));
             foreach (var dateTide in dateEvent) {
-                b.Append(e.PrintLine($"{dateTide.EventType} - {dateTide.DateTime:HH:mm} "));
+                b.Append(e.PrintLine($"{dateTide.EventType} - {dateTide.DateTime:HH:mm} ({dateTide.Height:F2}m) "));
             } 
             b.Append(e.PrintLine(null));
         }

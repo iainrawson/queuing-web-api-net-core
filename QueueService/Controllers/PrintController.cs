@@ -20,20 +20,33 @@ public class PrintController : ControllerBase
         AdmiraltyTidalApiClient admiraltyTidalApiClient) => (_logger, _taskQueue, _admiraltyTidalApiClient) = (logger, taskQueue, admiraltyTidalApiClient);
 
     public enum StationLocation {
-        WoodbridgeHaven,
-        Bawdsey
+        Bawdsey,
+        FelixstowePier,
+        Harwich,
+        Ipswich,
+        OrfordHavenBar,
+        OrfordNess,
+        Woodbridge,
+        WoodbridgeHaven
     }
 
+    // TODO: Convert to Extension method
     private readonly Dictionary<StationLocation, String> _stationLocationDictionary = new Dictionary<StationLocation, String> 
     {
-        {StationLocation.WoodbridgeHaven, "0134"}, {StationLocation.Bawdsey, "0135"}
+        {StationLocation.Bawdsey, "0135"},
+        {StationLocation.FelixstowePier, "0133A"},
+        {StationLocation.Harwich, "0131"},
+        {StationLocation.Ipswich, "0133"},
+        {StationLocation.OrfordHavenBar, "0136"},
+        {StationLocation.OrfordNess, "0137"},
+        {StationLocation.Woodbridge, "0134A"},
+        {StationLocation.WoodbridgeHaven, "0134"}
     };
 
 
     [HttpPost("Tides", Name = "PrintTidalEvents")]
     public async Task<ActionResult> PrintTides(StationLocation stationLocation)
     {
-        //const string stationId = "0134";
         var stationId = _stationLocationDictionary[stationLocation];
 
         var station = await _admiraltyTidalApiClient.GetStationById(stationId);
