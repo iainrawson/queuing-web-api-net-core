@@ -1,4 +1,5 @@
 using QueueService.TaskQueue;
+using QueueService.Models;
 
 namespace QueueService.Services;
 

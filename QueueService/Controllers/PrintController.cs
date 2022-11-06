@@ -2,55 +2,40 @@ using Microsoft.AspNetCore.Mvc;
 using QueueService.TaskQueue;
 using QueueService.Models;
 using DataSources.TidalData;
-using ESCPOS_NET.Emitters;
-using ESCPOS_NET.Utilities;
 using QueueService.FormattingExtensions;
 
 namespace QueueService.Controllers;
 
-using TidalEvents = List<TidalEvent>;
-
 [ApiController]
 [Route("[controller]")]
-public class QueueController : ControllerBase
+public class PrintController : ControllerBase
 {
-    private readonly ILogger<QueueController> _logger;
+    private readonly ILogger<PrintController> _logger;
     private readonly IBackgroundTaskQueue _taskQueue;
     private readonly AdmiraltyTidalApiClient _admiraltyTidalApiClient;
 
-    public QueueController(ILogger<QueueController> logger, IBackgroundTaskQueue taskQueue, AdmiraltyTidalApiClient admiraltyTidalApiClient)
+    public PrintController(
+        ILogger<PrintController> logger, 
+        IBackgroundTaskQueue taskQueue, 
+        AdmiraltyTidalApiClient admiraltyTidalApiClient) => (_logger, _taskQueue, _admiraltyTidalApiClient) = (logger, taskQueue, admiraltyTidalApiClient);
+
+    [HttpPost("Tides", Name = "PrintTidalEvents")]
+    public async Task<ActionResult> PrintTides()
     {
-        _logger = logger;
-        _taskQueue = taskQueue;
-        _admiraltyTidalApiClient = admiraltyTidalApiClient;
-    }
-
-    private readonly string _stationId = "0134";
-
-    [HttpGet(Name = "GetQueue")]
-    public async Task<TidalEvents> Get() {
-
-        var result = await _admiraltyTidalApiClient.GetTidalEventsByStationId(stationId: _stationId);
-        return result;
-    }
-    
-    [Route(template: "PrintTidalEvents")]
-    [HttpPost(Name = "PrintTidalEvents")]
-    public async Task<ActionResult> PrintTidalEvents()
-    {
-        var tidalEvents = await _admiraltyTidalApiClient.GetTidalEventsByStationId(stationId: _stationId);
+        const string stationId = "0134";
+        var tidalEvents = await _admiraltyTidalApiClient.GetTidalEventsByStationId(stationId: stationId);
         var queueItem = tidalEvents.ToQueueItem();
-        await _taskQueue.QueueBackgroundWorkItemAsync(CreateWorkItem(queueItem));
-        return Ok();
+        var workItem = CreateWorkItem(queueItem);
+        await _taskQueue.QueueBackgroundWorkItemAsync(workItem);
+        return Ok(queueItem.Id);
     }
 
-    [HttpPost(Name = "PostQueue")]
-    public async Task<ActionResult> Post(QueueItem item)
+    [HttpPost(template: "HelloWorld", Name = "HelloWorld")]
+    public async Task<ActionResult> HelloWorld()
     {
-        _logger.LogInformation("Received Post {name}", item.Id);
-
-        await _taskQueue.QueueBackgroundWorkItemAsync(CreateWorkItem(item));
-        return Ok();
+        QueueItem? queueItem = "Hello World".ToQueueItem();
+        await _taskQueue.QueueBackgroundWorkItemAsync(CreateWorkItem(queueItem));
+        return Ok(queueItem.Id);
     }
 
     private Func<CancellationToken, Task> CreateWorkItem(QueueItem queueItem) {
